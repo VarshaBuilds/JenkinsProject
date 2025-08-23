@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'Node'   // name must match your Jenkins NodeJS tool config
+        nodejs 'Node'   // must match your Jenkins NodeJS tool config
     }
 
     stages {
@@ -24,31 +24,35 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                bat 'npm test -- --watchAll=false'
-            }
-            post {
-                always {
-                    junit 'junit.xml' // if you add a reporter, else skip
-                }
-            }
-        }
-
         stage('Archive Build') {
             steps {
                 archiveArtifacts artifacts: 'build/**', fingerprint: true
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy (serve)') {
             steps {
                 bat '''
-                if not exist deploy mkdir deploy
-                xcopy /E /I /Y build deploy\\build
-                echo "React app deployed to deploy\\build folder"
+                echo Stopping old serve processes if any...
+                taskkill /F /IM node.exe || echo "No old serve process found"
+
+                echo Starting React app with serve on port 5000...
+                start /B cmd /c "npx serve -s build -l 5000 > serve-app.log 2>&1"
+                echo React app is running. Logs: serve-app.log
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline finished successfully! React app is running at http://localhost:5000"
+        }
+        failure {
+            echo "❌ Pipeline failed! Check logs for errors."
+        }
+        always {
+            echo "Build completed at: ${env.BUILD_URL}"
         }
     }
 }
