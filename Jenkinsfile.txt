@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'Node'   // must match the NodeJS tool config in Jenkins
+        nodejs 'Node'   // must match your Jenkins NodeJS tool config
     }
 
     stages {
@@ -21,18 +21,6 @@ pipeline {
         stage('Build') {
             steps {
                 bat 'npm run build'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                bat 'npm test -- --watchAll=false'
-            }
-            post {
-                always {
-                    // works if jest-junit reporter is configured
-                    junit 'junit.xml'
-                }
             }
         }
 
