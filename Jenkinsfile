@@ -30,16 +30,21 @@ pipeline {
             }
         }
 
-        stage('Deploy (serve)') {
+        stage('Deploy (PM2)') {
             steps {
                 bat '''
-                echo Stopping old serve processes if any...
-                REM Ignore error if no node.exe is running
-                taskkill /F /IM node.exe >nul 2>&1 || ver >nul
+                echo Deploying React app with PM2...
 
-                echo Starting React app with serve on port 5000...
-                start /B cmd /c "npx serve -s build -l 5000 > serve-app.log 2>&1"
-                echo React app is running. Logs: serve-app.log
+                REM Install PM2 globally if not already installed
+                call npm install -g pm2
+
+                REM Stop old process if it exists
+                pm2 delete react-app || echo "No old app found"
+
+                REM Start new process using PM2
+                pm2 start npx --name "react-app" -- serve -s build -l 5000
+
+                echo React app is running with PM2 on port 5000
                 '''
             }
         }
