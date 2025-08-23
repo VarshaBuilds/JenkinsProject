@@ -34,7 +34,8 @@ pipeline {
             steps {
                 bat '''
                 echo Stopping old serve processes if any...
-                taskkill /F /IM node.exe || echo "No old serve process found"
+                REM Ignore error if no node.exe is running
+                taskkill /F /IM node.exe >nul 2>&1 || ver >nul
 
                 echo Starting React app with serve on port 5000...
                 start /B cmd /c "npx serve -s build -l 5000 > serve-app.log 2>&1"
